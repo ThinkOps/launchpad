@@ -81,3 +81,52 @@
   text-transform: none;
   font-weight: 600;
 }
+
+.cloud-account-setup__test-connection {
+  margin: 16px 0;
+  padding: 16px;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  background-color: #f9f9f9;
+}
+
+.cloud-account-setup__test-button {
+  padding: 8px 16px;
+  border-radius: 6px;
+  text-transform: none;
+  font-weight: 500;
+}
+
+.cloud-account-setup__connection-result {
+  margin-top: 12px;
+}
+
+.cloud-account-setup__success {
+  display: flex;
+  align-items: center;
+  color: #4caf50;
+}
+
+.cloud-account-setup__success-icon {
+  font-size: 20px;
+  margin-right: 8px;
+}
+
+.cloud-account-setup__success-text {
+  font-weight: 500;
+}
+
+.cloud-account-setup__error {
+  display: flex;
+  align-items: center;
+  color: #f44336;
+}
+
+.cloud-account-setup__error-icon {
+  font-size: 20px;
+  margin-right: 8px;
+}
+
+.cloud-account-setup__error-text {
+  font-weight: 500;
+}

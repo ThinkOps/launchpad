@@ -82,3 +82,19 @@ export const revertApplicationSecret = async (applicationName, environmentName, 
     token: true
   });
 };
+
+export const addEnvironmentToApplication = async (applicationName, environmentId) => {
+  return httpClient.post({
+    url: `${APPLICATIONS_URL}/${applicationName}/environments`,
+    data: { environmentId },
+    token: true
+  });
+};
+
+export const initializeEnvironmentSecrets = async (applicationName, environmentName) => {
+  return httpClient.post({
+    url: `${APPLICATIONS_URL}/${applicationName}/environments/${environmentName}/secrets/initialize`,
+    data: {},
+    token: true
+  });
+};

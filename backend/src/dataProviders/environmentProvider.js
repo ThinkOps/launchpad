@@ -35,7 +35,17 @@ class EnvironmentProvider {
         console.log("id in env dp", orgId);
       const environments = await Environment.findAll({
         where: { org_id: orgId },
-        raw: true,
+        include: [
+          {
+            association: 'cloudAccount',
+            attributes: ['id', 'provider', 'account_name', 'account_identifier']
+          },
+          {
+            association: 'organisation',
+            attributes: ['id', 'name']
+          }
+        ],
+        order: [['created_at', 'DESC']]
       });
       console.log("environments in env dp", environments)
       return environments;

@@ -79,4 +79,16 @@ router.post(
   RequestWrapper(ApplicationController.revertSecret)
 );
 
+// Add environment to application
+router.post(
+  '/:applicationName/environments',
+  RequestWrapper(ApplicationController.addEnvironment)
+);
+
+// Initialize secrets for environment
+router.post(
+  '/:applicationName/environments/:environmentName/secrets/initialize',
+  RequestWrapper(ApplicationController.initializeSecrets)
+);
+
 module.exports = router;

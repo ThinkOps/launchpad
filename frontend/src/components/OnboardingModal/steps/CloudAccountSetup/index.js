@@ -13,9 +13,10 @@ import {
   MenuItem,
 } from "@material-ui/core";
 import { Alert } from "@material-ui/lab";
-import { Cloud } from "@material-ui/icons";
+import { Cloud, CheckCircle, Error } from "@material-ui/icons";
 
-import { createCloudAccount } from "services/cloudAccounts";
+import { createCloudAccount, testCloudAccountConnection } from "services/cloudAccounts";
+import { getUserPayload } from "config/helper";
 import styles from "./style.module.scss";
 
 const CloudAccountSetup = ({ organizationId, onComplete, onBack }) => {
@@ -28,9 +29,11 @@ const CloudAccountSetup = ({ organizationId, onComplete, onBack }) => {
       { key: 'AWS_SECRET_ACCESS_KEY', value: '' },
       { key: 'AWS_REGION', value: '' }
     ],
-    metadata: "",
   });
   const [loading, setLoading] = useState(false);
+  const [testingConnection, setTestingConnection] = useState(false);
+  const [connectionTested, setConnectionTested] = useState(false);
+  const [connectionSuccess, setConnectionSuccess] = useState(false);
   const [error, setError] = useState("");
 
   const providers = [
@@ -98,6 +101,51 @@ const CloudAccountSetup = ({ organizationId, onComplete, onBack }) => {
         i === index ? { ...key, [field]: value } : key
       )
     }));
+    // Reset connection test when access keys change
+    setConnectionTested(false);
+    setConnectionSuccess(false);
+    setError("");
+  };
+
+  const handleTestConnection = async () => {
+    // Validate required fields first
+    if (!formData.provider || !formData.account_name || !formData.account_identifier) {
+      setError("Please fill in all required fields before testing connection");
+      return;
+    }
+
+    const hasEmptyKeys = formData.access_keys.some(key => !key.key.trim() || !key.value.trim());
+    if (hasEmptyKeys) {
+      setError("All access key fields must be filled before testing connection");
+      return;
+    }
+
+    setTestingConnection(true);
+    setError("");
+
+    try {
+      const response = await testCloudAccountConnection({
+        provider: formData.provider,
+        access_keys: formData.access_keys
+      });
+
+      if (response && response.data) {
+        setConnectionTested(true);
+        setConnectionSuccess(true);
+        setError("");
+      } else {
+        setConnectionTested(true);
+        setConnectionSuccess(false);
+        setError("Connection test failed");
+      }
+    } catch (err) {
+      console.error("Error testing connection:", err);
+      setConnectionTested(true);
+      setConnectionSuccess(false);
+      setError(err.response?.data?.message || "Connection test failed");
+    } finally {
+      setTestingConnection(false);
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -115,11 +163,26 @@ const CloudAccountSetup = ({ organizationId, onComplete, onBack }) => {
       return;
     }
 
+    // Require successful connection test
+    // if (!connectionTested || !connectionSuccess) {
+    //   setError("Please test the connection successfully before adding the cloud account");
+    //   return;
+    // }
+
     setLoading(true);
     setError("");
 
     try {
-      const metadata = formData.metadata ? JSON.parse(formData.metadata) : null;
+      // Get user email for metadata
+      const userPayload = getUserPayload();
+      const userEmail = userPayload?.user?.email || userPayload?.email || "unknown@example.com";
+      
+      // Create metadata automatically
+      const metadata = {
+        "created_by": userEmail,
+        "date_created": new Date().toISOString()
+      };
+
       console.log("formdata", formData);
       const response = await createCloudAccount(organizationId, {
         ...formData,
@@ -223,19 +286,40 @@ const CloudAccountSetup = ({ organizationId, onComplete, onBack }) => {
                 ))}
               </Box>
 
-              <TextField
-                name="metadata"
-                label="Metadata (JSON)"
-                value={formData.metadata}
-                onChange={handleInputChange}
-                fullWidth
-                multiline
-                rows={3}
-                className={styles["cloud-account-setup__input"]}
-                placeholder='{"region": "us-east-1", "tags": {"environment": "production"}}'
-                helperText="Optional JSON metadata for additional configuration"
-              />
+              {/* Test Connection Section */}
+              <Box className={styles["cloud-account-setup__test-connection"]}>
+                <Button
+                  type="button"
+                  variant="outlined"
+                  color="primary"
+                  onClick={handleTestConnection}
+                  disabled={testingConnection || !formData.provider || !formData.account_name || !formData.account_identifier || formData.access_keys.some(key => !key.key.trim() || !key.value.trim())}
+                  startIcon={testingConnection ? <CircularProgress size={20} /> : <Cloud />}
+                  className={styles["cloud-account-setup__test-button"]}
+                >
+                  {testingConnection ? "Testing..." : "Test Connection"}
+                </Button>
 
+                {connectionTested && (
+                  <Box className={styles["cloud-account-setup__connection-result"]}>
+                    {connectionSuccess ? (
+                      <Box className={styles["cloud-account-setup__success"]}>
+                        <CheckCircle className={styles["cloud-account-setup__success-icon"]} />
+                        <Typography variant="body2" className={styles["cloud-account-setup__success-text"]}>
+                          Connection successful!
+                        </Typography>
+                      </Box>
+                    ) : (
+                      <Box className={styles["cloud-account-setup__error"]}>
+                        <Error className={styles["cloud-account-setup__error-icon"]} />
+                        <Typography variant="body2" className={styles["cloud-account-setup__error-text"]}>
+                          Connection failed
+                        </Typography>
+                      </Box>
+                    )}
+                  </Box>
+                )}
+              </Box>
 
               {error && (
                 <Alert severity="error" className={styles["cloud-account-setup__error"]}>
@@ -248,7 +332,7 @@ const CloudAccountSetup = ({ organizationId, onComplete, onBack }) => {
                   type="submit"
                   variant="contained"
                   color="primary"
-                  disabled={loading}
+                  // disabled={loading || !connectionTested || !connectionSuccess}
                   endIcon={loading ? <CircularProgress size={20} /> : <Cloud />}
                   className={styles["cloud-account-setup__submit"]}
                 >

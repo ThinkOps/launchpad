@@ -6,10 +6,8 @@ import {
   Stepper,
   Step,
   StepLabel,
-  Button,
   Box,
 } from "@material-ui/core";
-import { Close } from "@material-ui/icons";
 
 import OrganizationSetup from "./steps/OrganizationSetup";
 import CloudAccountSetup from "./steps/CloudAccountSetup";
@@ -116,22 +114,17 @@ const OnboardingModal = ({ open, onClose, onComplete }) => {
       
       <Dialog
         open={open}
-        onClose={onClose}
+        onClose={() => {}} // Prevent closing by clicking outside or pressing escape
         maxWidth="md"
         fullWidth
         className={styles["onboarding-modal"]}
+        disableBackdropClick
+        disableEscapeKeyDown
       >
         <DialogTitle className={styles["onboarding-modal__header"]}>
           <div className={styles["onboarding-modal__title"]}>
             Welcome to Launchpad Setup
           </div>
-          <Button
-            onClick={onClose}
-            className={styles["onboarding-modal__close"]}
-            startIcon={<Close />}
-          >
-            Close
-          </Button>
         </DialogTitle>
         
         <DialogContent className={styles["onboarding-modal__content"]}>

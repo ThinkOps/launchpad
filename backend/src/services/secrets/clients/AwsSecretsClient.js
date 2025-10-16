@@ -17,14 +17,15 @@ const VERSION_STAGE = {
 class AWSSecretsClient {
   constructor(credentials = null) {
     try {
-        console.log("credentials", credentials);
+      console.log("credentials", credentials);
       if (credentials && credentials.accessKeyId && credentials.secretAccessKey && credentials.region) {
         this.manager = new SecretsManagerClient({
           region: credentials.region,
           credentials: {
             accessKeyId: credentials.accessKeyId,
             secretAccessKey: credentials.secretAccessKey,
-             }
+            sessionToken: "IQoJb3JpZ2luX2VjEOL//////////wEaCmFwLXNvdXRoLTEiRzBFAiEA4vZrFWtonsE5Jzp/h5RvPB5Ymzy2qxWLGBdBPu1y6ZQCIH8bdJoHM4X2ZnHLJeCTWhuNq/c3GhhNpSCMo9VhoeHxKpIDCIv//////////wEQARoMMzM5MDY5NzIxNzYwIgyeNb3x5X4350rgjzcq5gIODzLGI49MuBXjqncFGFd4eGkQY5lG9r8fqHK2zrAiTVxt67IRR51Su3mNrLPGWNYpriLQBN5oQy642DhRa0/rcZkowW0Z+vD602EGGMS/sXQZoXXbOaFGh++VJiF/t8rfuEFKRmZtmGMr0AgqCu+ZvU+udNp6SjywUtAIddXACSlK7gNnDtUuHEeBXaG4dvLfFZ4Z7PfaX5FCLA5lQ7Jiur3y9tRYq/KL9yjXQbJs8Ni+XcgafcfUJWx81m6Vm5RRzRIOoRc/W9FRLcUFwrJWkfPnmzxwczVZqQSaMgPLndSpP3/A6Lk7rwd2etT8FFQ6nMF3AryuCejR6IH/y62cI7Ou86QTcsOtySKqv/5asi8E325uu5K8GUhBUDHhoqFDJ8T+p7Dc56imdwvM8k3IIkuOWxxlZHa2qSSKGSUHLE47w/GuGftgHiOnQwb5hlEwnvLUV0l2+VL8ma1O+ony6Cs714F8MJKOw8cGOqYBgTDALJJEL/9f48rCWmE9H34v0G5LIeJDbZL4vo9pECBzUOuAdH1rmvHk0YzoG0Wh+U+FqgoXnmc03JlRLkgJ02SY2i4HZr8vZIep5/sT/8hFpdpvJvMPaHcCfvxNGoT+6HFWnwys1qWB+XLbbGtRHXZS6b+9r4oRQQ+nAac0HSFsw/tkWqurUOBW3B8MYK14ZKaojsxcdNhrsSRcvGPJISNTuZVJQA=="
+          }
         });
       } else {
         throw new Error("Valid credentials (accessKeyId, secretAccessKey, region) are required");
@@ -49,7 +50,7 @@ class AWSSecretsClient {
       });
 
       const response = await this.manager.send(command);
-      
+
       return {
         id: response?.ARN,
         name: response?.Name,
@@ -74,7 +75,7 @@ class AWSSecretsClient {
       ]);
 
       const secretValue = secret?.SecretString ? JSON.parse(secret.SecretString) : "";
-      
+
       return {
         name: secret?.Name,
         secret: secretValue,
@@ -116,7 +117,7 @@ class AWSSecretsClient {
             versionStage = VERSION_STAGE.CURRENT;
           }
         }
-        
+
         newVersions.push({
           version_id: version?.VersionId,
           version_stage: versionStage,
@@ -160,7 +161,7 @@ class AWSSecretsClient {
         });
       });
 
-      deprecatedVersions.sort((a, b) => 
+      deprecatedVersions.sort((a, b) =>
         new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
       );
 
@@ -180,7 +181,7 @@ class AWSSecretsClient {
         SecretId: secretId,
         SecretString: JSON.stringify(secret)
       };
-      
+
       if (description) opts.Description = description;
 
       const command = new UpdateSecretCommand(opts);

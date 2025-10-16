@@ -16,6 +16,7 @@ import {
 import { Alert } from "@material-ui/lab";
 
 import { createCloudAccount, updateCloudAccount, deleteCloudAccount, testCloudAccountConnection } from "services/cloudAccounts";
+import { getUserPayload } from "config/helper";
 import styles from "./style.module.scss";
 
 const CloudAccountDialog = ({ open, onClose, cloudAccount, organization, mode, onSuccess }) => {
@@ -23,8 +24,7 @@ const CloudAccountDialog = ({ open, onClose, cloudAccount, organization, mode, o
     provider: "aws",
     account_name: "",
     account_identifier: "",
-    access_keys: [],
-    metadata: ""
+    access_keys: []
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -70,16 +70,14 @@ const CloudAccountDialog = ({ open, onClose, cloudAccount, organization, mode, o
         provider: cloudAccount.provider || "aws",
         account_name: cloudAccount.account_name || "",
         account_identifier: cloudAccount.account_identifier || "",
-        access_keys: cloudAccount.access_keys || [],
-        metadata: cloudAccount.metadata ? JSON.stringify(cloudAccount.metadata, null, 2) : ""
+        access_keys: cloudAccount.access_keys || []
       });
     } else {
       setFormData({
         provider: "aws",
         account_name: "",
         account_identifier: "",
-        access_keys: getDefaultAccessKeys("aws"),
-        metadata: ""
+        access_keys: getDefaultAccessKeys("aws")
       });
     }
     setError("");
@@ -169,15 +167,22 @@ const CloudAccountDialog = ({ open, onClose, cloudAccount, organization, mode, o
     setError("");
 
     try {
-      let metadata = {};
-      if (formData.metadata.trim()) {
-        try {
-          metadata = JSON.parse(formData.metadata);
-        } catch (err) {
-          setError("Invalid JSON format in metadata field");
-          setLoading(false);
-          return;
-        }
+      // Get user email for metadata
+      const userPayload = getUserPayload();
+      const userEmail = userPayload?.user?.email || userPayload?.email || "unknown@example.com";
+      
+      // Create metadata automatically
+      const metadata = {
+        "created_by": userEmail,
+        "date_created": new Date().toISOString()
+      };
+
+      // For edit mode, preserve existing metadata and add updated info
+      if (mode === "edit" && cloudAccount?.metadata) {
+        metadata.updated_by = userEmail;
+        metadata.date_updated = new Date().toISOString();
+        // Merge with existing metadata
+        Object.assign(metadata, cloudAccount.metadata);
       }
 
       const data = {
@@ -354,18 +359,6 @@ const CloudAccountDialog = ({ open, onClose, cloudAccount, organization, mode, o
               )}
             </div>
 
-            {/* <TextField
-              name="metadata"
-              label="Metadata (JSON)"
-              value={formData.metadata}
-              onChange={handleInputChange}
-              fullWidth
-              multiline
-              rows={3}
-              className={styles["dialog__input"]}
-              placeholder="Enter metadata as JSON (optional)"
-              disabled={loading}
-            /> */}
           </div>
         )}
       </DialogContent>

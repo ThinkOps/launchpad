@@ -44,7 +44,7 @@ const EnvironmentDialog = ({ open, onClose, environment, organization, cloudAcco
     setError("");
     
     // Fetch VPCs when dialog opens and we have a cloud account
-    if (open && cloudAccount && mode === "create") {
+    if (open && cloudAccount) {
       fetchVpcs();
     }
   }, [environment, mode, open, cloudAccount]);
@@ -66,6 +66,13 @@ const EnvironmentDialog = ({ open, onClose, environment, organization, cloudAcco
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
+    
+    // Prevent spaces in environment name
+    if (name === 'name' && value.includes(' ')) {
+      setError("Environment name cannot contain spaces");
+      return;
+    }
+    
     setFormData(prev => ({
       ...prev,
       [name]: value
@@ -76,6 +83,11 @@ const EnvironmentDialog = ({ open, onClose, environment, organization, cloudAcco
   const handleSubmit = async () => {
     if (!formData.name.trim()) {
       setError("Environment name is required");
+      return;
+    }
+
+    if (formData.name.includes(' ')) {
+      setError("Environment name cannot contain spaces");
       return;
     }
 
@@ -90,11 +102,21 @@ const EnvironmentDialog = ({ open, onClose, environment, organization, cloudAcco
     try {
       // Get user information for metadata
       const userPayload = getUserPayload();
+      const userEmail = userPayload?.user?.email || userPayload?.email || "unknown@example.com";
+      
+      // Create metadata automatically
       const metadata = {
-        createdBy: userPayload?.name || "Unknown User",
-        email: userPayload?.email || "unknown@example.com",
-        userId: userPayload?.id || "unknown"
+        "created_by": userEmail,
+        "date_created": new Date().toISOString()
       };
+
+      // For edit mode, preserve existing metadata and add updated info
+      if (mode === "edit" && environment?.metadata) {
+        metadata.updated_by = userEmail;
+        metadata.date_updated = new Date().toISOString();
+        // Merge with existing metadata
+        Object.assign(metadata, environment.metadata);
+      }
 
       const data = {
         name: formData.name.trim(),
