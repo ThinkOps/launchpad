@@ -16,7 +16,6 @@ export function clearTokens() {
   
 // User data management
 export function setUserPayload(user = {}) {
-  console.log("user data in helper", user);
   setTokens(user?.token);
   
   localStorage.setItem("user_payload", JSON.stringify(user));

@@ -145,7 +145,6 @@ const SecretVersions = ({
   const getVersionDetails = async () => {
     const tag_name = secret.tag_name;
     const version_id = versionId;
-    console.log('Getting version details for:', { tag_name, version_id, applicationName, envName });
     
     try {
       const response = await getVersionOfApplicationSecret(
@@ -154,13 +153,10 @@ const SecretVersions = ({
         tag_name,
         version_id
       );
-      console.log('Version details response:', response);
       
       if (response?.data?.secret) {
         setVersionSecret(response?.data?.secret);
-        console.log('Version secret set:', response?.data?.secret);
       } else {
-        console.log('No secret data in response');
         setVersionSecret(null);
       }
     } catch (error) {

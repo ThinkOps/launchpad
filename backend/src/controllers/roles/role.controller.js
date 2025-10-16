@@ -10,7 +10,6 @@ const RoleController = {};
 RoleController.create = async (req, res) => {
   try {
     const { name } = req.body;
-    console.log("Creating role:", { name });
     const created = await RoleService.create({ name });
     return responseWrapper.successResponse(res, 201, created);
   } catch (error) {
@@ -25,7 +24,6 @@ RoleController.create = async (req, res) => {
 
 RoleController.list = async (req, res) => {
   try {
-    console.log("Listing roles");
     const roles = await RoleService.list();
     return responseWrapper.successResponse(res, 200, roles);
   } catch (error) {
@@ -58,7 +56,6 @@ RoleController.update = async (req, res) => {
   try {
     const { id } = req.params;
     const { name } = req.body;
-    console.log("Updating role:", { id, name });
     const updated = await RoleService.update(id, { name });
     return responseWrapper.successResponse(res, 200, updated);
   } catch (error) {
@@ -75,7 +72,6 @@ RoleController.update = async (req, res) => {
 RoleController.remove = async (req, res) => {
   try {
     const { id } = req.params;
-    console.log("Deleting role:", id);
     const result = await RoleService.remove(id);
     return responseWrapper.successResponse(res, 200, result);
   } catch (error) {

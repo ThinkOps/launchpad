@@ -4,7 +4,6 @@ import classNames from "classnames";
 import style from "./style.module.scss";
 
 export const FormFieldGroup = ({ children, columnType, grid, ...props }) => {
-  // console.log("FormFieldGroup Props: ", props);
 
   const FormFieldGroupClass = classNames({
     [style["form__group"]]: true,

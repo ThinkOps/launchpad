@@ -77,21 +77,16 @@ AuthService.logout = async (token) => {
 
 AuthService.setupDefaultTeamForUser = async (user) => {
     try {
-        console.log('Setting up default team for user:', user.email);
-        
         // 1. Check if "Team Launchpad" already exists
         let defaultTeam = await teamService.findByEmail('team@launchpad.com');
         
         if (!defaultTeam) {
-            console.log('Creating default team "Team Launchpad"');
             // Create the default team
             defaultTeam = await teamService.create({
                 name: 'Team Launchpad',
                 email: 'team@launchpad.com'
             });
-            console.log('Default team created:', defaultTeam);
         } else {
-            console.log('Default team already exists:', defaultTeam);
         }
 
         // 2. Determine user role based on email
@@ -101,9 +96,7 @@ AuthService.setupDefaultTeamForUser = async (user) => {
         // 3. Get or create the role
         let userRole = await roleService.findByName(roleName);
         if (!userRole) {
-            console.log(`${roleName} role not found, creating it`);
             userRole = await roleService.create({ name: roleName });
-            console.log(`${roleName} role created:`, userRole);
         }
 
         // 4. Check if user is already in the team
@@ -116,18 +109,14 @@ AuthService.setupDefaultTeamForUser = async (user) => {
         });
 
         if (!existingMapping) {
-            console.log(`Adding user to default team with ${roleName} role`);
             // Add user to team with appropriate role
             await teamService.addMemberToTeam(defaultTeam.id, {
                 userId: user.id,
                 roleId: userRole.id
             });
-            console.log(`User added to default team with ${roleName} role`);
         } else {
-            console.log('User already in default team');
         }
 
-        console.log('Default team setup completed successfully');
     } catch (error) {
         console.error('Error setting up default team for user:', error);
         // Don't throw error to avoid breaking login flow
@@ -140,10 +129,8 @@ AuthService.googleOAuth = async (token) => {
             idToken: token,
             audience: config.GOOGLE_CLIENT_ID,
         });
-        console.log("verify token ", verifyToken);
 
         const payload = verifyToken.getPayload();
-        console.log("payload", payload);
         const { given_name, family_name, email, picture } = payload;
 
         // if (!this.isProboEmail(email)) {
@@ -151,18 +138,15 @@ AuthService.googleOAuth = async (token) => {
         // }
 
         let user = await userProvider.findByEmail(email);
-        console.log("user", user);
         if (!user) {
             try {
                 const username = generateUsernameFromEmail(email);
-                console.log("Creating SSO user with username:", username);
                 const hashedPassword = await bcrypt.hash(`${given_name}_${family_name}_${email}`, 10);
                 user = await userProvider.create({ 
                     username, 
                     email, 
                     password: hashedPassword 
                 });
-                console.log("createduser", user);
                 
                 // Setup default team for first-time SSO users
                 await AuthService.setupDefaultTeamForUser(user);
@@ -175,7 +159,6 @@ AuthService.googleOAuth = async (token) => {
         const expiresAt = new Date(Date.now() + 60 * 60 * 1000);
 
         const authToken = await UserSessionDataProvider.create({ userId: user.id, token: jwtToken, expiresAt });
-        console.log("authToken", authToken.dataValues.token);
         const response = {
             name: user?.username,
             email: user?.email,

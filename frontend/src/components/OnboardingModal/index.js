@@ -22,7 +22,6 @@ const steps = [
 ];
 
 const OnboardingModal = ({ open, onClose, onComplete }) => {
-  console.log("OnboardingModal render - open:", open);
   
   const [activeStep, setActiveStep] = useState(0);
   const [organizationData, setOrganizationData] = useState(null);

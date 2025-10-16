@@ -17,7 +17,6 @@ const VERSION_STAGE = {
 class AWSSecretsClient {
   constructor(credentials = null) {
     try {
-      console.log("credentials", credentials);
       if (credentials && credentials.accessKeyId && credentials.secretAccessKey && credentials.region) {
         this.manager = new SecretsManagerClient({
           region: credentials.region,

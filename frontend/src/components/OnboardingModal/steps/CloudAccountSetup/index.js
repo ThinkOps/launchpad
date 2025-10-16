@@ -183,7 +183,6 @@ const CloudAccountSetup = ({ organizationId, onComplete, onBack }) => {
         "date_created": new Date().toISOString()
       };
 
-      console.log("formdata", formData);
       const response = await createCloudAccount(organizationId, {
         ...formData,
         metadata

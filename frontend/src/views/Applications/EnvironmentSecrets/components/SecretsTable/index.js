@@ -254,8 +254,6 @@ const SecretsTable = ({
         const baseSecret = response?.data?.find(ele => ele?.tag_name === 'base');
         const baseSecretData = baseSecret?.secret_data?.secret || {};
         
-        console.log('Base secret data:', baseSecretData);
-        console.log('All secrets data:', response?.data);
         
         const rows = secret_keys?.map((key) => {
           const value = response?.data?.map((ele) => {
@@ -265,7 +263,6 @@ const SecretsTable = ({
             // Show base value for keys that are fetched from base (missing or empty in tag)
             const displayValue = isOverwritten ? baseValue : (ele?.secret_data?.secret[key] || '');
             
-            console.log(`Key: ${key}, Tag: ${tagName}, isOverwritten: ${isOverwritten}, baseValue: ${baseValue}, displayValue: ${displayValue}`);
             
             return {
               [tagName]: displayValue,

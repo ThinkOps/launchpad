@@ -27,7 +27,6 @@ UserController.getAllUsers = async (req, res) => {
 UserController.searchUsersByEmail = async (req, res) => {
   try {
     const { searchTerm } = req.query;
-    console.log("Searching users by email:", searchTerm);
     const users = await userService.getUsersByEmail(searchTerm);
     return responseWrapper.successResponse(res, 200, users);
   } catch (error) {
@@ -43,7 +42,6 @@ UserController.searchUsersByEmail = async (req, res) => {
 UserController.getUserTeamsAndRoles = async (req, res) => {
   try {
     const userId = req.user.id; // Get user ID from JWT token
-    console.log("Getting teams and roles for user:", userId);
     const userTeamsAndRoles = await userService.getUserTeamsAndRoles(userId);
     return responseWrapper.successResponse(res, 200, userTeamsAndRoles);
   } catch (error) {

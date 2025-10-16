@@ -266,7 +266,6 @@ class ApplicationService {
       });
 
       if (!applicationTagMapping) {
-        console.log(`Base tag missing for application ${applicationId} in environment ${environmentId}`);
         return {};
       }
 
@@ -274,7 +273,6 @@ class ApplicationService {
       const secretId = applicationTagMapping.tag.features?.secret_id;
 
       if (!secretId) {
-        console.log(`Base secret missing for application ${applicationId} in environment ${environmentId}`);
         return {};
       }
 
@@ -282,7 +280,6 @@ class ApplicationService {
       const secret = await Secret.findByPk(secretId);
 
       if (!secret) {
-        console.log(`Secret with ID ${secretId} not found`);
         return {};
       }
 

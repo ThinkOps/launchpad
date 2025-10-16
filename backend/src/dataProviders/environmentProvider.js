@@ -32,7 +32,6 @@ class EnvironmentProvider {
 
   async findByOrganisationId(orgId) {
     try {
-        console.log("id in env dp", orgId);
       const environments = await Environment.findAll({
         where: { org_id: orgId },
         include: [
@@ -47,7 +46,6 @@ class EnvironmentProvider {
         ],
         order: [['created_at', 'DESC']]
       });
-      console.log("environments in env dp", environments)
       return environments;
     } catch (error) {
       throw error;

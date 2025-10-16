@@ -12,7 +12,6 @@ import { Storage, MoreVert, Edit, Delete } from "@material-ui/icons";
 import styles from "./style.module.scss";
 
 const EnvironmentItem = ({ environment, onEdit,cloudAccount, onDelete }) => {
-  console.log("environment", environment);
   
   const [anchorEl, setAnchorEl] = React.useState(null);
   const open = Boolean(anchorEl);

@@ -11,7 +11,6 @@ CloudAccountController.create = async (req, res) => {
   try {
     const { provider, account_name, account_identifier, access_keys, metadata } = req.body;
     const { orgId } = req.params;
-    console.log("req body in controller", req.body);
     const created = await CloudAccountService.create({
       provider,
       account_name,

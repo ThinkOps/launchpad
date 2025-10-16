@@ -97,7 +97,6 @@ class CloudAccountTestClient {
   async listAWSVpcs() {
     try {
       // Validate required AWS credentials
-      console.log("this.credentials", this.credentials);
       if (!this.credentials.accessKeyId || !this.credentials.secretAccessKey || !this.credentials.region) {
         throw new Error('Missing required AWS credentials: accessKeyId, secretAccessKey, region');
       }
@@ -126,9 +125,7 @@ class CloudAccountTestClient {
         region: this.credentials.region
       })) || [];
 
-      console.log(`Found ${vpcs.length} VPCs in region ${this.credentials.region}`);
       vpcs.forEach(vpc => {
-        console.log(`- VPC ID: ${vpc.id}, Name: ${vpc.name}, CIDR: ${vpc.cidr}, Is Default: ${vpc.isDefault}`);
       });
 
       return vpcs;

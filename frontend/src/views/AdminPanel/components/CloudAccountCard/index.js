@@ -14,8 +14,6 @@ import EnvironmentItem from "../EnvironmentItem";
 import styles from "./style.module.scss";
 
 const CloudAccountCard = ({ cloudAccount, environments = [], onEdit, onDelete, onAddEnvironment, onEditEnvironment, onDeleteEnvironment }) => {
-  console.log("cloudAccount", cloudAccount);
-  console.log("environments", environments);
   
   const [isExpanded, setIsExpanded] = useState(false);
   const [anchorEl, setAnchorEl] = useState(null);
