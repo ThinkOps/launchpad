@@ -5,6 +5,7 @@ import { Button } from 'components/Button';
 import Loader from 'components/Loader';
 import { getApplications } from 'services/applications';
 import EnvironmentCard from '../components/EnvironmentCard';
+import AddEnvironmentDialog from '../components/AddEnvironmentDialog';
 import styles from './style.module.scss';
 
 const ApplicationDetails = () => {
@@ -13,6 +14,7 @@ const ApplicationDetails = () => {
   const [application, setApplication] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [showAddEnvironmentDialog, setShowAddEnvironmentDialog] = useState(false);
 
   useEffect(() => {
     fetchApplicationDetails();
@@ -49,6 +51,11 @@ const ApplicationDetails = () => {
 
   const handleBackClick = () => {
     history.push('/applications');
+  };
+
+  const handleAddEnvironmentSuccess = () => {
+    // Refresh the application details to show the newly added environment
+    fetchApplicationDetails();
   };
 
   if (loading) {
@@ -104,12 +111,22 @@ const ApplicationDetails = () => {
             <strong>Environments:</strong> {uniqueEnvironments.length}
           </div>
           <div className={styles.applicationDetails__infoItem}>
-            <strong>Created:</strong> {new Date(application.created_at).toLocaleDateString()}
+            <strong>Created At:</strong> {new Date(application.createdAt).toLocaleDateString()}
           </div>
         </div>
 
         <div className={styles.applicationDetails__environments}>
-          <h2>Environments</h2>
+          <div className={styles.applicationDetails__environmentsHeader}>
+            <h2>Environments</h2>
+            <Button 
+              onClick={() => setShowAddEnvironmentDialog(true)}
+              variant="contained"
+              color="primary"
+              className={styles.applicationDetails__addButton}
+            >
+              + Add Environment
+            </Button>
+          </div>
           {uniqueEnvironments.length === 0 ? (
             <div className={styles.applicationDetails__empty}>
               <p>No environments attached to this application</p>
@@ -128,6 +145,15 @@ const ApplicationDetails = () => {
           )}
         </div>
       </div>
+
+      <AddEnvironmentDialog
+        open={showAddEnvironmentDialog}
+        onClose={() => setShowAddEnvironmentDialog(false)}
+        applicationName={applicationName}
+        organizationId={application?.organisation?.id}
+        existingEnvironmentIds={uniqueEnvironments.map(env => env.id)}
+        onSuccess={handleAddEnvironmentSuccess}
+      />
     </div>
   );
 };

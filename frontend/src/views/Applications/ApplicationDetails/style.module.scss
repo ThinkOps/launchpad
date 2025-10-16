@@ -44,9 +44,21 @@
 
   &__environments {
     h2 {
-      margin: 0 0 20px 0;
+      margin: 0;
       color: #333;
     }
+  }
+
+  &__environmentsHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+
+  &__addButton {
+    text-transform: none;
+    font-weight: 500;
   }
 
   &__grid {

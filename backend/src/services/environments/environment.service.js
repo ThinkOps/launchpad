@@ -89,7 +89,6 @@ class EnvironmentService {
 
   async remove(id) {
     try {
-    console.log("id in remove", id);
       const deleted = await EnvironmentProvider.delete(id);
       return deleted;
     } catch (error) {
@@ -110,7 +109,6 @@ class EnvironmentService {
   }
 
   validateCreateData(data) {
-    console.log("data in validateCreateData", data);
     if (!data.name || typeof data.name !== 'string' || data.name.trim().length === 0) {
       throw new Error('Environment name is required and must be a non-empty string');
     }

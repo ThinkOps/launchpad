@@ -10,14 +10,12 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     const storedToken = localStorage.getItem("access_token");
     if (storedToken && !isTokenExpired(storedToken)) {
-      console.log("storing set token");
       setToken(storedToken);
       setUser(getUserFromToken(storedToken));
     }
   }, []);
 
   const login = (token) => {
-    console.log("setting access _ token", token);
     localStorage.setItem("access_token", token);
     setToken(token);
     setUser(getUserFromToken(token));

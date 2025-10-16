@@ -24,7 +24,6 @@ const CloudAccountService = {
       metadata: metadata || null,
     });
 
-    console.log("created", created);
     
     return created.get({ plain: true });
   },
@@ -38,7 +37,6 @@ const CloudAccountService = {
   },
 
   listByOrganisationId: async (organisationId) => {
-    console.log("organisationId", organisationId);  
     return cloudAccountProvider.findByOrganisationId(organisationId);
   },
 

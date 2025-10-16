@@ -8,7 +8,6 @@ import { Button } from 'components/Button';
 import styles from './style.module.scss';
 
 const ApplicationCard = ({ application, onClick }) => {
-  console.log("application",application);
   const getApplicationType = () => {
     // You can customize this logic based on your application metadata
     return application.metadata?.type || 'Microservice';
@@ -20,7 +19,16 @@ const ApplicationCard = ({ application, onClick }) => {
   };
 
   const getEnvironmentCount = () => {
-    return application.environmentTagMappings?.length || 0;
+    if (!application.environmentTagMappings || application.environmentTagMappings.length === 0) {
+      return 0;
+    }
+    
+    // Get unique environment IDs to count distinct environments
+    const uniqueEnvironmentIds = new Set(
+      application.environmentTagMappings.map(mapping => mapping.environment?.id).filter(Boolean)
+    );
+    
+    return uniqueEnvironmentIds.size;
   };
 
   return (

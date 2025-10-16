@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Box,
   Typography,
@@ -7,25 +7,60 @@ import {
   Card,
   CardContent,
   CircularProgress,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
 } from "@material-ui/core";
 import { Alert } from "@material-ui/lab";
 import { Business, CheckCircle } from "@material-ui/icons";
 
 import { createEnvironment } from "services/environments";
+import { listVpcs } from "services/cloudAccounts";
+import { getUserPayload } from "config/helper";
 import styles from "./style.module.scss";
 
 const EnvironmentSetup = ({ organizationId, cloudAccountId, onComplete, onBack }) => {
   const [formData, setFormData] = useState({
     name: "",
-    region: "",
     vpc_id: "",
-    metadata: "",
   });
   const [loading, setLoading] = useState(false);
+  const [loadingVpcs, setLoadingVpcs] = useState(false);
+  const [vpcs, setVpcs] = useState([]);
   const [error, setError] = useState("");
+
+  // Load VPCs when cloudAccountId is available
+  useEffect(() => {
+    if (cloudAccountId) {
+      loadVpcs();
+    }
+  }, [cloudAccountId]);
+
+  const loadVpcs = async () => {
+    setLoadingVpcs(true);
+    try {
+      const response = await listVpcs(cloudAccountId);
+      if (response && response.data) {
+        setVpcs(response.data);
+      }
+    } catch (err) {
+      console.error("Error loading VPCs:", err);
+      setError("Failed to load VPCs");
+    } finally {
+      setLoadingVpcs(false);
+    }
+  };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
+    
+    // Prevent spaces in environment name
+    if (name === 'name' && value.includes(' ')) {
+      setError("Environment name cannot contain spaces");
+      return;
+    }
+    
     setFormData(prev => ({
       ...prev,
       [name]: value
@@ -41,16 +76,28 @@ const EnvironmentSetup = ({ organizationId, cloudAccountId, onComplete, onBack }
       return;
     }
 
+    if (formData.name.includes(' ')) {
+      setError("Environment name cannot contain spaces");
+      return;
+    }
+
     setLoading(true);
     setError("");
 
     try {
-      const metadata = formData.metadata ? JSON.parse(formData.metadata) : null;
+      // Get user email for metadata
+      const userPayload = getUserPayload();
+      const userEmail = userPayload?.user?.email || userPayload?.email || "unknown@example.com";
+      
+      // Create metadata automatically
+      const metadata = {
+        "created_by": userEmail,
+        "date_created": new Date().toISOString()
+      };
       
       const response = await createEnvironment(organizationId, {
         name: formData.name.trim(),
-        region: formData.region.trim() || null,
-        vpc_id: formData.vpc_id.trim() || null,
+        vpc_id: formData.vpc_id || null,
         cloud_account_id: cloudAccountId,
         metadata
       });
@@ -103,39 +150,33 @@ const EnvironmentSetup = ({ organizationId, cloudAccountId, onComplete, onBack }
                 className={styles["environment-setup__input"]}
                 placeholder="e.g., production, staging, development"
               />
-              
-              <TextField
-                name="region"
-                label="Region"
-                value={formData.region}
-                onChange={handleInputChange}
-                fullWidth
-                className={styles["environment-setup__input"]}
-                placeholder="e.g., us-east-1, eu-west-1"
-              />
 
-              <TextField
-                name="vpc_id"
-                label="VPC ID"
-                value={formData.vpc_id}
-                onChange={handleInputChange}
-                fullWidth
-                className={styles["environment-setup__input"]}
-                placeholder="e.g., vpc-12345678"
-              />
-
-              <TextField
-                name="metadata"
-                label="Metadata (JSON)"
-                value={formData.metadata}
-                onChange={handleInputChange}
-                fullWidth
-                multiline
-                rows={3}
-                className={styles["environment-setup__input"]}
-                placeholder='{"tags": {"environment": "production"}, "monitoring": true}'
-                helperText="Optional JSON metadata for additional configuration"
-              />
+              <FormControl fullWidth className={styles["environment-setup__input"]}>
+                <InputLabel>VPC *</InputLabel>
+                <Select
+                  name="vpc_id"
+                  value={formData.vpc_id}
+                  onChange={handleInputChange}
+                  required
+                  disabled={loadingVpcs}
+                >
+                  {loadingVpcs ? (
+                    <MenuItem disabled>
+                      <CircularProgress size={20} /> Loading VPCs...
+                    </MenuItem>
+                  ) : vpcs.length > 0 ? (
+                    vpcs.map((vpc) => (
+                      <MenuItem key={vpc.id || vpc.vpc_id} value={vpc.vpc_id || vpc.id}>
+                        {vpc.name || vpc.vpc_id} {vpc.cidr_block && `(${vpc.cidr_block})`}
+                      </MenuItem>
+                    ))
+                  ) : (
+                    <MenuItem disabled>
+                      No VPCs found
+                    </MenuItem>
+                  )}
+                </Select>
+              </FormControl>
 
               {error && (
                 <Alert severity="error" className={styles["environment-setup__error"]}>
@@ -148,7 +189,7 @@ const EnvironmentSetup = ({ organizationId, cloudAccountId, onComplete, onBack }
                   type="submit"
                   variant="contained"
                   color="primary"
-                  disabled={loading || !formData.name.trim()}
+                  disabled={loading || !formData.name.trim() || !formData.vpc_id || loadingVpcs}
                   endIcon={loading ? <CircularProgress size={20} /> : <CheckCircle />}
                   className={styles["environment-setup__submit"]}
                 >

@@ -9,7 +9,13 @@ module.exports = {
     body('name')
       .isString()
       .isLength({ min: 1, max: 255 })
-      .withMessage('Environment name must be between 1 and 255 characters'),
+      .withMessage('Environment name must be between 1 and 255 characters')
+      .custom((value) => {
+        if (value.includes(' ')) {
+          throw new Error('Environment name cannot contain spaces');
+        }
+        return true;
+      }),
     body('cloud_account_id')
       .isUUID()
       .withMessage('Cloud account ID must be a valid UUID'),
@@ -29,7 +35,13 @@ module.exports = {
       .optional()
       .isString()
       .isLength({ min: 1, max: 255 })
-      .withMessage('Environment name must be between 1 and 255 characters'),
+      .withMessage('Environment name must be between 1 and 255 characters')
+      .custom((value) => {
+        if (value && value.includes(' ')) {
+          throw new Error('Environment name cannot contain spaces');
+        }
+        return true;
+      }),
     body('cloud_account_id')
       .optional()
       .isUUID()
@@ -57,7 +69,13 @@ module.exports = {
     body('name')
       .isString()
       .isLength({ min: 1, max: 255 })
-      .withMessage('Environment name must be between 1 and 255 characters'),
+      .withMessage('Environment name must be between 1 and 255 characters')
+      .custom((value) => {
+        if (value.includes(' ')) {
+          throw new Error('Environment name cannot contain spaces');
+        }
+        return true;
+      }),
     body('cloud_account_id')
       .isUUID()
       .withMessage('Cloud account ID must be a valid UUID'),

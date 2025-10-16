@@ -145,7 +145,13 @@ class ApplicationService {
             include: [
               {
                 model: Environment,
-                as: 'environment'
+                as: 'environment',
+                include: [
+                  {
+                    model: CloudAccount,
+                    as: 'cloudAccount'
+                  }
+                ]
               },
               {
                 model: Tag,
@@ -177,7 +183,13 @@ class ApplicationService {
             include: [
               {
                 model: Environment,
-                as: 'environment'
+                as: 'environment',
+                include: [
+                  {
+                    model: CloudAccount,
+                    as: 'cloudAccount'
+                  }
+                ]
               },
               {
                 model: Tag,
@@ -254,7 +266,6 @@ class ApplicationService {
       });
 
       if (!applicationTagMapping) {
-        console.log(`Base tag missing for application ${applicationId} in environment ${environmentId}`);
         return {};
       }
 
@@ -262,7 +273,6 @@ class ApplicationService {
       const secretId = applicationTagMapping.tag.features?.secret_id;
 
       if (!secretId) {
-        console.log(`Base secret missing for application ${applicationId} in environment ${environmentId}`);
         return {};
       }
 
@@ -270,7 +280,6 @@ class ApplicationService {
       const secret = await Secret.findByPk(secretId);
 
       if (!secret) {
-        console.log(`Secret with ID ${secretId} not found`);
         return {};
       }
 
@@ -972,6 +981,258 @@ class ApplicationService {
       }
 
       return result;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async addEnvironmentToApplication(applicationName, environmentId) {
+    try {
+      // Find the application
+      const application = await Application.findOne({
+        where: { name: applicationName },
+        include: [
+          {
+            model: ApplicationEnvironmentTagMapping,
+            as: 'environmentTagMappings',
+            include: [
+              {
+                model: Environment,
+                as: 'environment'
+              }
+            ]
+          }
+        ]
+      });
+
+      if (!application) {
+        throw new Error('Application not found');
+      }
+
+      // Check if environment is already attached
+      const existingMapping = application.environmentTagMappings.find(
+        mapping => mapping.environment_id === environmentId
+      );
+
+      if (existingMapping) {
+        throw new Error('Environment is already attached to this application');
+      }
+
+      // Find the environment
+      const environment = await Environment.findByPk(environmentId, {
+        include: [
+          {
+            model: CloudAccount,
+            as: 'cloudAccount'
+          }
+        ]
+      });
+
+      if (!environment) {
+        throw new Error('Environment not found');
+      }
+
+      // Check if environment belongs to the same organization
+      if (environment.org_id !== application.organisation_id) {
+        throw new Error('Environment does not belong to the same organization as the application');
+      }
+
+      // Find or create base tag for this application
+      let baseTag = await Tag.findOne({
+        where: {
+          name: 'base',
+          features: {
+            application_id: application.id
+          }
+        }
+      });
+
+      if (!baseTag) {
+        baseTag = await Tag.create({
+          name: 'base',
+          features: {
+            description: 'Base tag for application secrets',
+            type: 'base',
+            application_id: application.id
+          }
+        });
+      }
+
+      // Create mapping
+      const mapping = await ApplicationEnvironmentTagMapping.create({
+        application_id: application.id,
+        tag_id: baseTag.id,
+        environment_id: environment.id
+      });
+
+      // Initialize secrets for this environment
+      try {
+        const cloudAccount = environment.cloudAccount;
+        if (!cloudAccount) {
+          throw new Error('Cloud account not found for environment');
+        }
+
+        const credentials = CloudAccountTestClient.extractCredentialsFromAccessKeys(
+          cloudAccount.provider, 
+          cloudAccount.access_keys
+        );
+
+        const secretResult = await secretsService.initializeApplicationSecrets({
+          applicationName,
+          environmentName: environment.name,
+          tagName: 'base',
+          cloudAccountCredentials: credentials,
+          provider: cloudAccount.provider
+        });
+
+        // Create secret entry with ARN from cloud provider
+        const secret = await Secret.create({
+          secret_id: secretResult.id, // Store the ARN here
+          current_version_id: secretResult.current_version_id,
+          last_version_id: secretResult.current_version_id,
+          metadata: {
+            application_id: application.id,
+            environment_id: environment.id,
+            tag_name: 'base',
+            secret_name: secretResult.name,
+            provider: cloudAccount.provider
+          }
+        });
+
+        // Update tag with secret reference
+        await baseTag.update({
+          features: {
+            ...baseTag.features,
+            secret_id: secret.id
+          }
+        });
+
+      } catch (secretError) {
+        console.error(`Failed to initialize secrets for environment ${environment.name}:`, secretError);
+        // Continue even if secret creation fails
+      }
+
+      return {
+        success: true,
+        environment: environment,
+        mapping: mapping
+      };
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async initializeEnvironmentSecrets(applicationName, environmentName) {
+    try {
+      const application = await Application.findOne({
+        where: { name: applicationName },
+        include: [
+          {
+            model: ApplicationEnvironmentTagMapping,
+            as: 'environmentTagMappings',
+            include: [
+              {
+                model: Environment,
+                as: 'environment',
+                where: { name: environmentName },
+                include: [
+                  {
+                    model: CloudAccount,
+                    as: 'cloudAccount'
+                  }
+                ]
+              },
+              {
+                model: Tag,
+                as: 'tag',
+                where: { name: 'base' }
+              }
+            ]
+          }
+        ]
+      });
+
+      if (!application) {
+        throw new Error('Application not found');
+      }
+
+      const mapping = application.environmentTagMappings.find(
+        m => m.environment.name === environmentName && m.tag.name === 'base'
+      );
+
+      if (!mapping) {
+        throw new Error('Environment not found for this application');
+      }
+
+      const environment = mapping.environment;
+      const cloudAccount = environment.cloudAccount;
+
+      if (!cloudAccount) {
+        throw new Error('Cloud account not found for environment');
+      }
+
+      const credentials = CloudAccountTestClient.extractCredentialsFromAccessKeys(
+        cloudAccount.provider, 
+        cloudAccount.access_keys
+      );
+
+      const secretResult = await secretsService.initializeApplicationSecrets({
+        applicationName,
+        environmentName,
+        tagName: 'base',
+        cloudAccountCredentials: credentials,
+        provider: cloudAccount.provider
+      });
+
+      // Create or update secret entry
+      let secret = await Secret.findOne({
+        where: {
+          metadata: {
+            application_id: application.id,
+            environment_id: environment.id,
+            tag_name: 'base'
+          }
+        }
+      });
+
+      if (secret) {
+        await secret.update({
+          secret_id: secretResult.id,
+          current_version_id: secretResult.current_version_id,
+          last_version_id: secretResult.current_version_id,
+          metadata: {
+            ...secret.metadata,
+            secret_name: secretResult.name,
+            provider: cloudAccount.provider
+          }
+        });
+      } else {
+        secret = await Secret.create({
+          secret_id: secretResult.id,
+          current_version_id: secretResult.current_version_id,
+          last_version_id: secretResult.current_version_id,
+          metadata: {
+            application_id: application.id,
+            environment_id: environment.id,
+            tag_name: 'base',
+            secret_name: secretResult.name,
+            provider: cloudAccount.provider
+          }
+        });
+      }
+
+      // Update tag with secret reference
+      await mapping.tag.update({
+        features: {
+          ...mapping.tag.features,
+          secret_id: secret.id
+        }
+      });
+
+      return {
+        success: true,
+        secret: secret
+      };
     } catch (error) {
       throw error;
     }

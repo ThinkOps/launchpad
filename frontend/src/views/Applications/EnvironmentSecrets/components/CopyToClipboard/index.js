@@ -8,7 +8,6 @@ const CopyToClipboard = ({ textToCopy, label, field }) => {
     try {
       await navigator.clipboard.writeText(textToCopy);
       // You could add a toast notification here if available
-      console.log('Copied to clipboard:', textToCopy);
     } catch (err) {
       console.error('Failed to copy: ', err);
     }

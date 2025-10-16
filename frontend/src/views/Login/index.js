@@ -24,7 +24,6 @@ import Logo from "../../assets/img/Launchpad_logo_2.png";
 const Login = ({ loginPayload = {} }) => {
   const { error, message, onSubmitForm, onSubmitGoogle, onSubmitGoogleFailed } = loginPayload;
 
-  console.log("Login Props: ", loginPayload);
 
   return (
     <div className={styles["login"]}>
@@ -83,7 +82,7 @@ const Login = ({ loginPayload = {} }) => {
                     <div className={styles["login__google"]}> {/* Tailwind example */}
                       <GoogleLogin
                         onSuccess={onSubmitGoogle}
-                        onError={() => console.log("Login Failed")}
+                        onError={() => {}}
                       />
                     </div>
                   </GoogleOAuthProvider>

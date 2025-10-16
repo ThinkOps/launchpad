@@ -18,8 +18,6 @@ const Profile = () => {
   useEffect(() => {
     // Get user details from localStorage
     const userPayload = getUserPayload();
-    console.log("User payload:", userPayload); // Debug log
-    console.log("User image URL:", userPayload?.image); // Debug image URL
     
     if (userPayload) {
       // For testing - you can uncomment this line to test with a sample image
@@ -68,13 +66,11 @@ const Profile = () => {
           src={userDetails?.image}
           alt={userDetails?.name || "User"}
           onError={(e) => {
-            console.log("Image failed to load due to CORS:", userDetails?.image);
             setImageError(true);
             // Hide the broken image and show fallback
             e.target.style.display = 'none';
           }}
           onLoad={() => {
-            console.log("Image loaded successfully:", userDetails?.image);
           }}
         >
           {(imageError || !userDetails?.image) && (userDetails?.name?.charAt(0)?.toUpperCase() || <AccountCircle />)}

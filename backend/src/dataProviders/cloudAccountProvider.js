@@ -8,12 +8,10 @@ const CloudAccountDataProvider = {
   findAll: async () => CloudAccount.findAll({ raw: true }),
 
   findByOrganisationId: async (organisationId) => {
-    console.log("organisationId in dp", organisationId);
     const response =  await CloudAccount.findAll({
       where: { organisation_id: organisationId },
       raw: true,
     });
-    console.log("response", response);
     return response;
   },
 

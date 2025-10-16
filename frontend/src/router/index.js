@@ -81,7 +81,6 @@ const routePaths = routes.map(route => route.path);
 
 const AppRoutes = (props) => {
     const userPayload = getUserPayload();
-    console.log("userPayload", userPayload);
     if (!userPayload) return <Redirect to="/login" />;
 
     return (
@@ -104,7 +103,6 @@ const AppRoutes = (props) => {
 };
 
 const AppRouter = () => {
-    console.log("reached in router")
     return (
         // <AuthProvider>
             // <Router>

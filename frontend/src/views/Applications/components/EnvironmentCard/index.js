@@ -14,7 +14,7 @@ const EnvironmentCard = ({ environment, applicationName, onClick }) => {
   };
 
   const getCloudAccountName = () => {
-    return environment?.cloud_account_id || 'Unknown';
+    return environment.cloudAccount?.account_name || environment?.cloud_account_id || 'Unknown';
   };
 
   const getVpcId = () => {

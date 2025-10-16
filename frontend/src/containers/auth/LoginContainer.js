@@ -12,7 +12,6 @@ class LoginContainer extends React.Component {
     }
 
     onSubmitForm = async (values) => {
-        console.log("Login form values: ", values);
         const { email, password } = values;
 
         // Set state to loading
@@ -41,12 +40,10 @@ class LoginContainer extends React.Component {
 
 
     onSubmitGoogleFailed = () => {
-       console.log("Error connecting to google client");
         return;
     };
 
     onSubmitGoogle = async (values) => {
-        console.log("Google form values: ", values);
 
         // Get tokenId from google response
         const { credential } = values;
@@ -84,8 +81,6 @@ class LoginContainer extends React.Component {
     };
 
     render() {
-        console.log("LoginContainer Props: ", this.props);
-        console.log("LoginContainer State: ", this.state);
 
         const { children } = this.props;
         const { loading } = this.state;

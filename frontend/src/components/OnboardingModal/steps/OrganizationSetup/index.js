@@ -16,7 +16,6 @@ import styles from "./style.module.scss";
 const OrganizationSetup = ({ onComplete, onBack }) => {
   const [formData, setFormData] = useState({
     name: "",
-    description: "",
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -43,8 +42,7 @@ const OrganizationSetup = ({ onComplete, onBack }) => {
 
     try {
       const response = await createOrganization({
-        name: formData.name.trim(),
-        description: formData.description.trim() || null
+        name: formData.name.trim()
       });
 
       if (response && response.data) {
@@ -89,18 +87,6 @@ const OrganizationSetup = ({ onComplete, onBack }) => {
                 placeholder="Enter your organization name"
                 error={!!error}
                 helperText={error}
-              />
-              
-              <TextField
-                name="description"
-                label="Description (Optional)"
-                value={formData.description}
-                onChange={handleInputChange}
-                fullWidth
-                multiline
-                rows={3}
-                className={styles["organization-setup__input"]}
-                placeholder="Brief description of your organization"
               />
 
               <Box className={styles["organization-setup__actions"]}>

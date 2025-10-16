@@ -1,0 +1,40 @@
+@import "scss/variables.scss";
+
+.dialog__title {
+  font-weight: 600;
+  color: #1f2937;
+  padding-bottom: 16px;
+}
+
+.dialog__content {
+  padding-top: 8px;
+}
+
+.dialog__error {
+  margin-bottom: 16px;
+}
+
+.dialog__info {
+  margin-top: 16px;
+}
+
+.dialog__form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.dialog__input {
+  margin-bottom: 0;
+}
+
+.dialog__description {
+  color: #6b7280;
+  margin: 0 0 16px 0;
+  line-height: 1.5;
+}
+
+.dialog__actions {
+  padding: 16px 24px;
+  gap: 8px;
+}

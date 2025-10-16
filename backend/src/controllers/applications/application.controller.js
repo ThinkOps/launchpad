@@ -245,4 +245,65 @@ ApplicationController.revertSecret = async (req, res) => {
   }
 };
 
+ApplicationController.addEnvironment = async (req, res) => {
+  try {
+    const { applicationName } = req.params;
+    const { environmentId } = req.body;
+    
+    if (!environmentId) {
+      return responseWrapper.errorResponse(
+        res,
+        400,
+        'Environment ID is required'
+      );
+    }
+
+    const result = await ApplicationService.addEnvironmentToApplication(applicationName, environmentId);
+    
+    return responseWrapper.successResponse(res, 201, result);
+  } catch (error) {
+    if (error.message === 'Application not found') {
+      return responseWrapper.errorResponse(res, 404, 'Application not found');
+    }
+    if (error.message === 'Environment not found') {
+      return responseWrapper.errorResponse(res, 404, 'Environment not found');
+    }
+    if (error.message === 'Environment is already attached to this application') {
+      return responseWrapper.errorResponse(res, 409, 'Environment is already attached to this application');
+    }
+    if (error.message === 'Environment does not belong to the same organization as the application') {
+      return responseWrapper.errorResponse(res, 400, 'Environment does not belong to the same organization as the application');
+    }
+    return responseWrapper.errorResponse(
+      res,
+      500,
+      getErrorMessage(error) || respErrConstants.ERROR_500_MESSAGE,
+      error
+    );
+  }
+};
+
+ApplicationController.initializeSecrets = async (req, res) => {
+  try {
+    const { applicationName, environmentName } = req.params;
+    
+    const result = await ApplicationService.initializeEnvironmentSecrets(applicationName, environmentName);
+    
+    return responseWrapper.successResponse(res, 200, result);
+  } catch (error) {
+    if (error.message === 'Application not found') {
+      return responseWrapper.errorResponse(res, 404, 'Application not found');
+    }
+    if (error.message === 'Environment not found for this application') {
+      return responseWrapper.errorResponse(res, 404, 'Environment not found for this application');
+    }
+    return responseWrapper.errorResponse(
+      res,
+      500,
+      getErrorMessage(error) || respErrConstants.ERROR_500_MESSAGE,
+      error
+    );
+  }
+};
+
 module.exports = ApplicationController;
